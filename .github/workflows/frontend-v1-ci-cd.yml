@@ -1,0 +1,45 @@
+name: Deploy to Debian VPS
+
+on:
+  # Trigger workflow setiap kali ada push ke branch 'main'
+  push:
+    branches:
+      - main
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 1. Checkout Kode
+      # Mengambil kode terbaru dari GitHub repo
+      uses: actions/checkout@v4
+    
+    - name: 2. Deploy via SSH (Appleboy)
+      # Menggunakan appleboy/ssh-action untuk koneksi ke VPS
+      uses: appleboy/ssh-action@v1.0.1
+      with:
+        host: ${{ secrets.SSH_HOST }}        # Alamat IP VPS Anda
+        username: ${{ secrets.SSH_USERNAME }}  # Username (misalnya dev_budi atau user Anda)
+        key: ${{ secrets.SSH_PRIVATE_KEY }}    # Kunci SSH Privat
+        port: 22                             # Port SSH standar
+        
+        # Perintah yang akan dijalankan di VPS setelah koneksi berhasil
+        script: |
+          # 1. Masuk ke direktori proyek Anda di VPS
+          # Ganti dengan path folder proyek Anda (misalnya /var/www/proyek-deploy)
+          cd ../..
+          cd var/www/UTS_Web
+          
+          # 2. Lakukan pull kode terbaru dari GitHub
+          # Pastikan user SSH (secrets.SSH_USERNAME) punya akses ke direktori ini
+          git pull origin main
+          
+          # 3. Opsional: Jalankan perintah pasca-deployment (misal: restart layanan)
+          # Contoh jika Anda menggunakan Node.js dan PM2:
+          # pm2 restart nama_aplikasi
+          
+          # Contoh jika Anda perlu migrasi database (misal Laravel/PHP):
+          # composer install
+          # php artisan migrate --force
